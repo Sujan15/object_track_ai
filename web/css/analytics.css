@@ -1,0 +1,47 @@
+.an-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.an-actions { display: flex; gap: 10px; }
+
+.period-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+.period-tab {
+    background: var(--light-gray);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.period-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.chart-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+}
+.chart-card.wide { grid-column: span 2; }
+
+.data-table {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+}
+.data-table h3 { margin-bottom: 15px; }
+.table-wrapper { max-height: 400px; overflow-y: auto; }

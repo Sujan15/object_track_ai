@@ -1,0 +1,52 @@
+#cameras.yaml
+
+conveyor_lines:
+  - id: 1
+    name: "Line 1"
+    source: "rtsp://admin:pip%40pipmis@10.1.6.33:554/cam/realmonitor?channel=1&subtype=0"
+    ppm: 4.3
+    active: true
+    conveyor_direction: "y"        # "y" = objects move top→bottom in frame
+                                   # "x" = objects move left→right in frame
+    zones:
+      # defect_zone: [0,0,0,0] disables defect detection
+      defect_zone:  [0, 0, 0, 0]
+      # measure_zone and count_zone MUST fit within your actual frame resolution.
+      # Below assumes 1920x1080 sub-stream. Adjust if your cameras differ.
+      # Use the log line "Line N | frame=WxH" to confirm resolution on startup.
+      measure_zone: [0, 0, 0, 0] #[0, 200, 1920, 600]
+      count_zone:   [0, 600, 1920, 1000]
+
+  - id: 2
+    name: "Line 2"
+    source: "rtsp://admin:pip%40pipmis@10.1.6.34:554/cam/realmonitor?channel=1&subtype=0"
+    ppm: 4.1
+    active: true
+    conveyor_direction: "y"
+    zones:
+      defect_zone:  [0, 0, 0, 0]
+      measure_zone: [0, 0, 0, 0] #[0, 200, 1920, 600]
+      count_zone:   [0, 600, 1920, 1000]
+
+  - id: 3
+    name: "Line 3"
+    source: "rtsp://admin:cam%40123456@192.168.141.72:554/cam/realmonitor?channel=1&subtype=0"
+    ppm: 4.1
+    active: true
+    loop: true                     # loop the test video so worker doesn't exit
+    conveyor_direction: "y"
+    zones:
+      defect_zone:  [0, 0, 0, 0] #
+      measure_zone: [0, 0, 0, 0] #[0, 200, 1920, 600]
+      count_zone:   [0, 600, 1920, 1000]
+
+  - id: 4
+    name: "Line 4"
+    source: "http://172.22.212.1:8080/video"
+    ppm: 4.1
+    active: false
+    conveyor_direction: "y"
+    zones:
+      defect_zone:  [0, 0, 0, 0]
+      measure_zone: [0, 0, 0, 0] #[0, 200, 1920, 600]
+      count_zone:   [0, 600, 1920, 1000]

@@ -1,0 +1,27 @@
+.venv
+web11
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+*.gz
+
+# Videos / test data
+tests/
+*.mp4
+
+# zips / backups
+*.zip
+*-Copy.py
+
+# OS / editor
+.DS_Store
+.vscode/
+
+# git branch -M main
+# git push -u origin main
+# git pull origin main

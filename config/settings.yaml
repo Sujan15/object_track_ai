@@ -1,0 +1,30 @@
+# settings.yaml - global settings for ObjectTrackAI application
+
+# Path to detection model (OpenVINO IR format .xml)
+models:
+  detection: "models/detection/yolo11s_openvino_model/yolo11s.xml"   # generic YOLO model
+  # detection: "models/detection/best_int8_openvino_model-1k/best.xml"   # generic YOLO model
+
+performance:
+  cpu_threads: 4
+  target_fps: 20
+  motion_threshold: 0.003
+
+# For motion pre‑check (MOG2)
+motion_threshold: 0.003   # fraction of changed pixels
+roi_half_height: 120
+
+# Disconnect handling
+disconnect_track_age_penalty: 90   # frames
+force_count_zone_px: 80
+
+# Counting thresholds
+min_frames_in_count_zone: 3
+min_measure_votes: 5
+
+# Streaming over TCP (WebSocket)
+stream_jpeg_quality: 80
+stream_fps_limit: 30
+
+# Logging
+log_dir: "logs"

@@ -1,0 +1,17 @@
+#classes.yaml
+# ── OPTION A: COCO-pretrained model (default yolo11s) ─────────────────────────
+classes:
+  39: "Bottle"
+  41: "Cup"
+  46: "Can"
+  25: "Box"
+# Add more COCO IDs as needed for your products
+
+# Display colors in BGR format (OpenCV convention)
+colors:
+  "Bottle":   [0, 255, 0]       # green
+  "Can":      [255, 0, 0]       # blue
+  "Box":      [0, 0, 255]       # red
+  "Cup":      [255, 165, 0]     # orange
+  "Cylinder": [255, 255, 0]     # cyan
+  default:    [255, 0, 0]   # grey for unrecognised classes

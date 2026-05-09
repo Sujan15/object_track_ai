@@ -1,0 +1,106 @@
+:root {
+    --primary: #4a6fa5;
+    --primary-dark: #3a5a8a;
+    --secondary: #ff9800;
+    --dark: #2c3e50;
+    --gray: #7f8c8d;
+    --light-gray: #ecf0f1;
+    --success: #4caf50;
+    --danger: #f44336;
+    --warning: #ffc107;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f5f7fa;
+    color: var(--dark);
+}
+
+.container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+header {
+    background: white;
+    box-shadow: var(--box-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon { font-size: 28px; color: var(--primary); }
+.logo-text { font-size: 22px; font-weight: 700; }
+.logo-text span { color: var(--primary); }
+
+nav a {
+    margin-left: 24px;
+    text-decoration: none;
+    color: var(--dark);
+    font-weight: 500;
+    transition: 0.2s;
+}
+nav a:hover, nav a.active { color: var(--primary); }
+
+.user-info { display: flex; align-items: center; gap: 15px; }
+.notification-icon { position: relative; cursor: pointer; font-size: 20px; }
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+}
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.main-content { padding: 30px 0; min-height: calc(100vh - 140px); }
+
+footer {
+    background: var(--dark);
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 12px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+
+.select-sm {
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--light-gray);
+    background: white;
+}

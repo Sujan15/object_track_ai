@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ObjectTrackAI - Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/analytics.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="page-analytics">
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                    <div class="logo-text">Object<span>TrackAI</span></div>
+                </div>
+                <nav>
+                    <a href="index.html">Dashboard</a>
+                    <a href="live-feed.html">Live Feed</a>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="settings.html">Settings</a>
+                </nav>
+                <div class="user-info">
+                    <div class="notification-icon"><i class="fas fa-bell"></i><div class="notification-badge">0</div></div>
+                    <div class="user-avatar">OP</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="an-header">
+                <div>
+                    <h1 class="dashboard-title">Analytics & Reports</h1>
+                    <p class="dashboard-subtitle">Historical object counts and class distribution</p>
+                </div>
+                <div class="an-actions">
+                    <button class="btn btn-success" id="exportExcel"><i class="fas fa-file-excel"></i> Excel</button>
+                    <button class="btn btn-danger" id="exportPDF"><i class="fas fa-file-pdf"></i> PDF</button>
+                </div>
+            </div>
+
+            <div class="period-tabs">
+                <button class="period-tab active" data-days="7">Last 7 Days</button>
+                <button class="period-tab" data-days="14">Last 14 Days</button>
+                <button class="period-tab" data-days="30">Last 30 Days</button>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Class Distribution</h3>
+                    <canvas id="classPieChart" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Hourly Production</h3>
+                    <canvas id="hourlyBarChart" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card wide">
+                    <h3>Line Comparison</h3>
+                    <canvas id="lineComparisonChart" width="800" height="300"></canvas>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <h3>Detailed Log</h3>
+                <div class="table-wrapper">
+                    <table id="analyticsTable">
+                        <thead><tr><th>Timestamp</th><th>Line</th><th>Class</th><th>Defective</th></tr></thead>
+                        <tbody><tr><td colspan="4">Select a period to load data</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">ObjectTrackAI - Industrial Object Counting System</div>
+            <div class="copyright">&copy; 2026 ObjectTrackAI. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="js/analytics.js"></script>
+</body>
+</html>

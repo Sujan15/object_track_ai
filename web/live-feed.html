@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ObjectTrackAI - Live Feed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/live-feed.css">
+</head>
+<body class="page-live-feed">
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                    <div class="logo-text">Object<span>TrackAI</span></div>
+                </div>
+                <nav>
+                    <a href="index.html">Dashboard</a>
+                    <a href="live-feed.html" class="active">Live Feed</a>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="settings.html">Settings</a>
+                </nav>
+                <div class="user-info">
+                    <div class="notification-icon"><i class="fas fa-bell"></i><div class="notification-badge">0</div></div>
+                    <div class="user-avatar">OP</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="live-feed-header">
+                <div>
+                    <h1 class="dashboard-title">Live Conveyor Feeds</h1>
+                    <p class="dashboard-subtitle">Real-time video streams with AI overlays</p>
+                </div>
+                <div class="view-controls">
+                    <button class="view-btn active" data-view="grid"><i class="fas fa-th-large"></i> Grid</button>
+                    <button class="view-btn" data-view="single"><i class="fas fa-expand"></i> Single</button>
+                </div>
+            </div>
+
+            <div class="camera-grid" id="camera-grid">
+                <!-- Camera cards will be populated dynamically by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Single View Overlay (uses <img> instead of <video>) -->
+        <div id="single-view-overlay" class="overlay">
+            <div class="overlay-header">
+                <span id="overlay-title">Line 1</span>
+                <button id="overlay-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="overlay-body">
+                <button id="overlay-prev" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+                <img id="overlay-video" alt="Live feed overlay" style="max-width:90%; max-height:80%; background:#000;">
+                <button id="overlay-next" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="overlay-stats">
+                <div class="stat">Total: <span id="overlay-total">0</span></div>
+                <div class="stat">Defects: <span id="overlay-defects">0</span></div>
+                <div class="stat">Rate: <span id="overlay-rate">0</span>%</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">ObjectTrackAI - Industrial Object Counting System</div>
+            <div class="copyright">&copy; 2026 ObjectTrackAI. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script src="js/stream.js"></script>
+</body>
+</html>
