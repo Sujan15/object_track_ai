@@ -1,11 +1,4 @@
 # core/stream_manager.py
-# ObjectTrackAI – Production-grade stream manager
-# Based on the proven EggTrackAI design with all original APIs preserved.
-# Fixes:
-#   - Simplified FFmpeg options (TCP only) to stop decoder corruption.
-#   - Motion threshold = 0.003 (sensitive enough for slow belts).
-#   - Force inference every 30 frames when no active tracks.
-#   - Frame corruption detection: skip garbage frames.
 
 import cv2
 import numpy as np
@@ -18,16 +11,13 @@ from typing import Optional
 from core.vision_engine import ObjectVisionEngine
 import core.logger_setup as ls
 
-# # ── Simplified RTSP options (TCP only, no aggressive buffering) ──────────
-# os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
-
+# Simplified RTSP options (TCP only, no aggressive buffering)
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = (
     "rtsp_transport;tcp|"
     "fflags;nobuffer|"
     "flags;low_delay|"
     "stimeout;2000000"  # 2s timeout
 )
-
 
 # ── Constants ─────────────────────────────────────────────────────────────
 _RECONNECT_POLL_S       = 2.0
@@ -37,11 +27,9 @@ _ROI_HALF_HEIGHT        = 120
 _IDLE_SLEEP_S           = 0.033
 _DISCONNECT_AGE_PENALTY = 90
 _STREAM_JPEG_QUALITY    = 72
-_TARGET_FPS             = 20
-_STREAM_INTERVAL_S      = 1.0 / _TARGET_FPS
-_PLACEHOLDER_INTERVAL   = 2.0
-_FORCE_INFERENCE_EVERY_N = 30           # run YOLO even if no motion every 30 frames
-
+_STREAM_PUBLISH_INTERVAL_S = 0.033     # ~30 fps (no timestamp discarding)
+_PLACEHOLDER_INTERVAL   = 2.0          # not used anymore, kept for compatibility
+_FORCE_INFERENCE_EVERY_N = 30          # still runs YOLO, but always publishes annotated
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 def _is_file_source(source: str) -> bool:
@@ -49,14 +37,12 @@ def _is_file_source(source: str) -> bool:
     return not any(lowered.startswith(s) for s in
                    ("rtsp://", "rtsps://", "rtmp://", "http://", "https://"))
 
-
 def _open_capture(source: str) -> cv2.VideoCapture:
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
     return cap
 
-
-# ── Reconnect controller ─────────────────────────────────────────────────
+# ── Reconnect controller (unchanged) ─────────────────────────────────────
 class _ReconnectController:
     def __init__(self, source: str, line_id: int):
         self._source = source
@@ -102,8 +88,7 @@ class _ReconnectController:
             ls.log_system(f"Line {self._line_id}: reconnected after {self._attempt} attempt(s)")
             return
 
-
-# ── Motion guard (MOG2) ──────────────────────────────────────────────────
+# ── Motion guard (MOG2) unchanged ────────────────────────────────────────
 class _MotionGuard:
     def __init__(self, roi_y1: int, roi_y2: int, frame_height: int, motion_thresh: float):
         self.roi_y1 = max(0, roi_y1)
@@ -135,8 +120,7 @@ class _MotionGuard:
         score = float(fg.sum()) / (fg.size * 255)
         return score >= self.motion_thresh
 
-
-# ── Inference thread ─────────────────────────────────────────────────────
+# ── Inference thread (modified: no raw frame publishing, no duplicate skip) ──
 def _inference_thread(line_config: dict, global_config: dict,
                       frame_slot: queue.Queue) -> None:
     line_id = line_config["id"]
@@ -155,22 +139,8 @@ def _inference_thread(line_config: dict, global_config: dict,
     disconnect_ts: Optional[float] = None
     motion_guard: Optional[_MotionGuard] = None
 
-    # Frame corruption detection
-    last_valid_frame_hash = None
+    # Frames counter for forced inference (kept, but never publishes raw)
     frames_since_last_inference = 0
-
-    def _put_frame(annotated, stats):
-        try:
-            frame_slot.put_nowait((annotated, stats))
-        except queue.Full:
-            try:
-                frame_slot.get_nowait()
-            except queue.Empty:
-                pass
-            try:
-                frame_slot.put_nowait((annotated, stats))
-            except queue.Full:
-                pass
 
     while True:
         # Read frame
@@ -212,13 +182,7 @@ def _inference_thread(line_config: dict, global_config: dict,
             roi_y2 = min(orig_h, cz[3])
             motion_guard = _MotionGuard(roi_y1, roi_y2, orig_h, motion_thresh)
 
-        # Frame corruption detection: skip completely black frames or repeated garbage
-        frame_hash = hash(frame.tobytes()[-1024:])  # cheap hash of last 1KB
-        if last_valid_frame_hash is not None and frame_hash == last_valid_frame_hash:
-            # Duplicate frame – skip to avoid wasting CPU
-            time.sleep(0.005)
-            continue
-        last_valid_frame_hash = frame_hash
+        # ── REMOVED duplicate frame skipping (hash check) ──────────────────
 
         # Motion guard with forced inference
         no_active = not engine.has_active_tracks()
@@ -232,30 +196,35 @@ def _inference_thread(line_config: dict, global_config: dict,
         else:
             frames_since_last_inference = 0
 
+        # ── CHANGED: never publish raw frames; only annotated frames ───────
+        # If no active tracks and no motion → just sleep and loop (no publish)
         if no_active and no_motion:
-            # Idle – send raw frame (no boxes) at lower quality
-            ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 55])
-            if ok:
-                idle_stats = dict(engine.stats)
-                _put_frame(buf.tobytes(), idle_stats)
             time.sleep(_IDLE_SLEEP_S)
             continue
 
-        # Run inference
+        # Run inference (always produces annotated frame)
         try:
             annotated, stats = engine.process_frame(frame)
             if annotated is not None:
-                ok, buf = cv2.imencode(".jpg", annotated,
-                                       [cv2.IMWRITE_JPEG_QUALITY, _STREAM_JPEG_QUALITY])
-                if ok:
-                    _put_frame(buf.tobytes(), stats)
-            # Add this:
-            time.sleep(0.001) # Yield to the OS scheduler        
+                # Put the annotated frame (numpy array) into the queue.
+                # Encoding to JPEG is now done in the publisher thread.
+                try:
+                    frame_slot.put_nowait((annotated, stats))
+                except queue.Full:
+                    try:
+                        frame_slot.get_nowait()
+                    except queue.Empty:
+                        pass
+                    try:
+                        frame_slot.put_nowait((annotated, stats))
+                    except queue.Full:
+                        pass
+            # Small yield to avoid starving the publisher
+            time.sleep(0.001)
         except Exception as exc:
             ls.log_error(f"Line {line_id}: inference error", exc=exc)
 
-
-# ── Placeholder ──────────────────────────────────────────────────────────
+# ── Placeholder (kept but never used) ────────────────────────────────────
 def _make_placeholder(line_id: int) -> bytes:
     img = np.zeros((480, 640, 3), dtype=np.uint8)
     img[:] = (30, 30, 30)
@@ -266,34 +235,34 @@ def _make_placeholder(line_id: int) -> bytes:
     _, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 60])
     return buf.tobytes()
 
-
-# ── Publisher thread ─────────────────────────────────────────────────────
+# ── Publisher thread (modified: no placeholders, encode here, simple sleep) ──
 def _publisher_thread(line_id: int, frame_slot: queue.Queue, result_dict) -> None:
     empty_stats = {"total": 0, "classes": {}, "defects": 0}
-    last_publish_ts = 0.0
-    last_placeholder_ts = 0.0
 
     while True:
-        now = time.monotonic()
         try:
-            jpeg_bytes, stats = frame_slot.get(timeout=0.5)
+            # Wait for a new annotated frame (numpy array)
+            annotated_frame, stats = frame_slot.get(timeout=0.5)
         except queue.Empty:
-            if now - last_placeholder_ts > _PLACEHOLDER_INTERVAL:
-                placeholder = _make_placeholder(line_id)
-                result_dict[str(line_id)] = {"frame": placeholder, "stats": empty_stats}
-                last_placeholder_ts = now
+            # Do NOT send placeholder – last frame remains on frontend
             continue
         except Exception as exc:
             ls.log_error(f"Line {line_id}: publisher queue error", exc=exc)
             continue
 
-        if now - last_publish_ts < _STREAM_INTERVAL_S:
-            continue
-        result_dict[str(line_id)] = {"frame": jpeg_bytes, "stats": stats}
-        last_publish_ts = now
+        # Encode the annotated frame to JPEG (now done in publisher thread)
+        ok, buf = cv2.imencode(".jpg", annotated_frame,
+                               [cv2.IMWRITE_JPEG_QUALITY, _STREAM_JPEG_QUALITY])
+        if ok:
+            try:
+                result_dict[str(line_id)] = {"frame": buf.tobytes(), "stats": stats}
+            except Exception:
+                pass
 
+        # Throttle to ~30 fps (simple sleep, no timestamp discarding)
+        time.sleep(_STREAM_PUBLISH_INTERVAL_S)
 
-# ── Worker entry point ───────────────────────────────────────────────────
+# ── Worker entry point (unchanged) ───────────────────────────────────────
 def inference_worker(line_config: dict, global_config: dict,
                      result_dict, log_queue) -> None:
     ls.configure_worker_logging(log_queue)
